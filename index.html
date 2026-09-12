@@ -1,0 +1,629 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FF5A1F">
+<meta name="description" content="9월부터 12월까지 네 달 안에 1,000만원을 모으는 저축 트래커.">
+<title>천만원 프로젝트</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@400;500;700;900&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='24' fill='%23FF5A1F'/><circle cx='50' cy='50' r='26' fill='none' stroke='%23100C08' stroke-width='13' stroke-dasharray='110 164' transform='rotate(-90 50 50)'/></svg>">
+
+<style>
+:root{
+  --bg:#FFFFFF;
+  --panel:#F4F3F0;
+  --panel-2:#EDEBE6;
+  --ink:#101010;
+  --ink-2:#6E6C66;
+  --ink-3:#9B9890;
+  --track:#E4E2DC;
+  --accent:#FF5A1F;
+  --accent-text:#D13F05;
+  --on-accent:#100C08;
+  --radius:22px;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0C0C0B;
+    --panel:#171613;
+    --panel-2:#201E1A;
+    --ink:#F7F6F2;
+    --ink-2:#92908A;
+    --ink-3:#6A6862;
+    --track:#2A2925;
+    --accent:#FF6B33;
+    --accent-text:#FF8552;
+    --on-accent:#100C08;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0C0C0B;
+  --panel:#171613;
+  --panel-2:#201E1A;
+  --ink:#F7F6F2;
+  --ink-2:#92908A;
+  --ink-3:#6A6862;
+  --track:#2A2925;
+  --accent:#FF6B33;
+  --accent-text:#FF8552;
+  --on-accent:#100C08;
+}
+
+*{box-sizing:border-box;}
+html{-webkit-text-size-adjust:100%;}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:"Gothic A1","Apple SD Gothic Neo",system-ui,sans-serif;
+  font-size:16px;
+  line-height:1.55;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+.num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;}
+.wrap{
+  width:100%;
+  max-width:1060px;
+  margin:0 auto;
+  padding-inline:clamp(20px,5vw,44px);
+}
+.mono{
+  font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,monospace;
+  font-weight:500;
+  font-size:11px;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+}
+
+/* ─────────── 1. headline ─────────── */
+.s-head{padding:clamp(36px,9vw,88px) 0 clamp(26px,6vw,48px);}
+.s-head .mono{color:var(--ink-3);display:block;margin-bottom:clamp(14px,3vw,22px);}
+h1{
+  margin:0;
+  font-weight:900;
+  font-size:clamp(52px,15.5vw,124px);
+  line-height:.88;
+  letter-spacing:-.045em;
+  display:flex;
+  flex-direction:column;
+}
+h1 .line{display:flex;align-items:baseline;}
+.goal-input{
+  font:inherit;
+  /* form controls don't inherit letter-spacing from the UA sheet — the mirror
+     that sizes this field measures with it, so it must be forced here too */
+  letter-spacing:inherit;
+  font-variant-numeric:tabular-nums;
+  color:var(--accent);
+  background:transparent;
+  border:0;
+  padding:0;
+  margin:0;
+  width:4ch;
+  text-align:left;
+  border-bottom:.06em solid transparent;
+  border-radius:2px;
+  -moz-appearance:textfield;
+  cursor:text;
+}
+.goal-input::-webkit-outer-spin-button,
+.goal-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+.goal-input:hover{border-bottom-color:var(--track);}
+.goal-input:focus{outline:none;border-bottom-color:var(--accent);}
+/* invisible mirror: measures the exact glyph width the input must match */
+.goal-mirror{
+  position:absolute;visibility:hidden;pointer-events:none;
+  white-space:pre;font:inherit;letter-spacing:inherit;
+}
+.lede{
+  margin:clamp(20px,4vw,30px) 0 0;
+  max-width:34ch;
+  font-size:clamp(16px,2.2vw,19px);
+  color:var(--ink-2);
+  line-height:1.5;
+}
+.lede b{color:var(--ink);font-weight:700;}
+
+/* ─────────── 2. dial ─────────── */
+.s-dial{padding-bottom:clamp(28px,6vw,60px);}
+.dial-grid{display:flex;flex-direction:column;align-items:center;gap:clamp(22px,4vw,40px);}
+.dial-wrap{position:relative;width:min(74vw,340px);aspect-ratio:1;flex:none;}
+.dial{width:100%;height:100%;display:block;transform:rotate(-90deg);overflow:visible;}
+.dial .track-ring{fill:none;stroke:var(--track);}
+.dial .fill-ring{
+  fill:none;
+  stroke:var(--accent);
+  stroke-linecap:round;
+  transition:stroke-dasharray 1s cubic-bezier(.2,.85,.25,1);
+}
+.dial .fill-ring[data-zero="1"]{visibility:hidden;}
+.dial .divider{stroke:var(--bg);stroke-width:5;transition:opacity .3s ease;}
+.dial-mid{
+  position:absolute;inset:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:0 16%;
+}
+.dial-mid .mono{color:var(--ink-3);}
+.d-amt{
+  font-weight:900;
+  font-size:clamp(40px,11vw,62px);
+  line-height:1;
+  letter-spacing:-.045em;
+  margin:.18em 0 .1em;
+}
+.d-amt .u{font-size:.44em;letter-spacing:-.02em;margin-left:.06em;}
+.d-pct{font-size:clamp(14px,3.4vw,17px);font-weight:700;color:var(--accent-text);}
+.d-pct.done{color:var(--ink);}
+
+/* ─────────── 3. full-bleed band ─────────── */
+.s-band{background:var(--accent);color:var(--on-accent);transition:background .35s ease;}
+.s-band.done{background:var(--ink);color:var(--bg);}
+.band{
+  display:flex;
+  flex-direction:column;
+  padding-block:clamp(28px,6vw,48px);
+}
+.bstat{
+  display:flex;align-items:baseline;justify-content:space-between;gap:16px;
+  padding-block:clamp(13px,2.6vw,17px);
+  border-bottom:1.5px solid currentColor;
+  opacity:1;
+}
+.bstat:first-child{border-top:1.5px solid currentColor;}
+.bstat > span{font-size:14px;font-weight:700;letter-spacing:-.01em;opacity:.72;}
+.bstat > b{
+  font-weight:900;
+  font-size:clamp(26px,7.4vw,42px);
+  letter-spacing:-.04em;
+  line-height:1.1;
+  text-align:right;
+}
+.band-note{
+  margin:clamp(18px,3.6vw,26px) 0 0;
+  font-size:15px;font-weight:500;line-height:1.5;
+  opacity:.78;max-width:44ch;
+}
+
+/* ─────────── 4. months ─────────── */
+.s-months{padding:clamp(40px,8vw,80px) 0 clamp(28px,5vw,40px);}
+.sec-title{
+  display:flex;align-items:baseline;justify-content:space-between;gap:14px;flex-wrap:wrap;
+  margin-bottom:clamp(20px,4vw,28px);
+}
+h2{
+  margin:0;
+  font-weight:900;
+  font-size:clamp(26px,6vw,40px);
+  letter-spacing:-.04em;
+  line-height:1;
+}
+.sec-title p{margin:0;font-size:13.5px;color:var(--ink-3);font-weight:500;}
+
+.months{display:flex;flex-direction:column;gap:12px;}
+.mb{
+  background:var(--panel);
+  border-radius:var(--radius);
+  padding:clamp(18px,4vw,22px);
+  display:flex;flex-direction:column;gap:15px;
+  transition:background .2s ease;
+}
+.mb:focus-within{background:var(--panel-2);}
+.mb-top{display:flex;align-items:center;justify-content:space-between;gap:14px;}
+.mb-name{
+  font-weight:900;font-size:clamp(22px,5vw,27px);letter-spacing:-.035em;
+  display:flex;align-items:center;gap:10px;
+}
+.tag{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-weight:500;font-size:10px;letter-spacing:.1em;
+  padding:4px 9px;border-radius:999px;
+  background:var(--ink);color:var(--bg);
+  white-space:nowrap;
+  transform:translateY(-1px);
+}
+.mb-field{display:flex;align-items:baseline;gap:5px;}
+.mb-field input{
+  font:inherit;
+  font-weight:900;
+  font-size:clamp(28px,7vw,36px);
+  letter-spacing:-.04em;
+  font-variant-numeric:tabular-nums;
+  color:var(--ink);
+  background:transparent;
+  border:0;
+  border-bottom:2.5px solid var(--track);
+  padding:2px 0;
+  width:4.2ch;
+  text-align:right;
+  border-radius:1px;
+  -moz-appearance:textfield;
+  transition:border-color .18s ease,color .18s ease;
+}
+.mb-field input::-webkit-outer-spin-button,
+.mb-field input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+.mb-field input::placeholder{color:var(--ink-3);font-weight:700;}
+.mb-field input:hover{border-bottom-color:var(--ink-3);}
+.mb-field input:focus{outline:none;border-bottom-color:var(--accent);color:var(--accent-text);}
+.mb-field .u{font-size:16px;font-weight:700;color:var(--ink-2);}
+
+.mb-bar{height:10px;border-radius:999px;background:var(--track);overflow:hidden;}
+.mb-bar i{
+  display:block;height:100%;width:0;border-radius:999px;
+  background:var(--accent);
+  transition:width .75s cubic-bezier(.2,.85,.25,1);
+}
+.mb-foot{
+  display:flex;align-items:baseline;justify-content:space-between;gap:12px;
+  font-size:13px;font-weight:500;color:var(--ink-2);
+}
+.mb-foot b{color:var(--ink);font-weight:700;}
+.mb.is-empty .mb-foot{color:var(--ink-3);}
+
+/* ─────────── footer ─────────── */
+.s-foot{padding:clamp(24px,5vw,40px) 0 clamp(48px,10vw,80px);}
+.foot{
+  display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;
+  padding-top:clamp(22px,4vw,30px);
+  border-top:2px solid var(--track);
+}
+.foot p{margin:0;font-size:13px;color:var(--ink-3);font-weight:500;max-width:46ch;}
+.btn{
+  font:inherit;font-weight:700;font-size:14px;
+  color:var(--ink);background:transparent;
+  border:2px solid var(--ink);
+  border-radius:999px;
+  padding:11px 22px;
+  cursor:pointer;
+  white-space:nowrap;
+  transition:background .18s ease,color .18s ease;
+}
+.btn:hover{background:var(--ink);color:var(--bg);}
+.btn:focus-visible{outline:3px solid var(--accent);outline-offset:3px;}
+
+/* ─────────── responsive ─────────── */
+@media (min-width:680px){
+  .months{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .band{flex-direction:row;gap:0;}
+  .bstat{
+    flex:1;flex-direction:column;align-items:flex-start;gap:6px;
+    border-bottom:0;border-top:1.5px solid currentColor;
+    padding:18px 24px 4px 0;
+  }
+  .bstat:first-child{border-top:1.5px solid currentColor;}
+  .bstat > b{text-align:left;}
+  .band-note{display:none;}
+}
+@media (min-width:940px){
+  .dial-grid{flex-direction:row;align-items:center;justify-content:space-between;gap:clamp(40px,6vw,80px);}
+  .dial-wrap{width:min(38vw,400px);}
+  .dial-side{flex:1;max-width:400px;}
+  .months{grid-template-columns:repeat(4,1fr);}
+}
+.dial-side{display:none;}
+@media (min-width:940px){
+  .dial-side{display:block;}
+  .dial-side h2{margin-bottom:14px;}
+  .dial-side p{margin:0;font-size:17px;color:var(--ink-2);line-height:1.55;}
+  .dial-side p b{color:var(--ink);font-weight:700;}
+  .s-head .lede{display:none;}
+}
+
+@media (prefers-reduced-motion:reduce){
+  *{transition-duration:.01ms !important;animation-duration:.01ms !important;}
+}
+</style>
+</head>
+<body>
+
+<section class="s-head">
+  <div class="wrap">
+    <span class="mono">2026.09 &nbsp;→&nbsp; 2026.12 &nbsp;·&nbsp; 4개월</span>
+    <h1>
+      <span class="line"><input class="goal-input num" id="goalInput" type="text" inputmode="decimal" value="1,000" aria-label="목표 금액 (만원)"><span class="goal-mirror num" id="goalMirror" aria-hidden="true"></span>만원</span>
+      <span class="line">프로젝트</span>
+    </h1>
+    <p class="lede">달마다 실제로 넣은 돈을 적으면 <b>얼마나 채웠는지</b>와 <b>남은 달에 매달 얼마씩</b> 넣어야 하는지 다시 계산합니다.</p>
+  </div>
+</section>
+
+<section class="s-dial">
+  <div class="wrap dial-grid">
+    <div class="dial-wrap">
+      <svg class="dial" viewBox="0 0 200 200" role="img" aria-labelledby="dialT">
+        <title id="dialT">저축 진행률 게이지</title>
+        <circle class="track-ring" cx="100" cy="100" r="80" stroke-width="26"></circle>
+        <circle class="fill-ring" id="fillRing" cx="100" cy="100" r="80" stroke-width="26"
+                stroke-dasharray="0 502.65"></circle>
+        <g id="dividers"></g>
+      </svg>
+      <div class="dial-mid">
+        <span class="mono">모은 돈</span>
+        <div class="d-amt num" id="dAmt">0<span class="u">만원</span></div>
+        <div class="d-pct num" id="dPct">목표의 0%</div>
+      </div>
+    </div>
+
+    <div class="dial-side">
+      <h2 id="sideTitle">아직 시작 전</h2>
+      <p id="sideText">달마다 실제로 넣은 돈을 적으면 <b>얼마나 채웠는지</b>와 <b>남은 달에 매달 얼마씩</b> 넣어야 하는지 다시 계산합니다.</p>
+    </div>
+  </div>
+</section>
+
+<section class="s-band" id="band">
+  <div class="wrap band">
+    <div class="bstat"><span>남은 금액</span><b class="num" id="bRest">1,000만원</b></div>
+    <div class="bstat"><span>매달 넣어야 할 돈</span><b class="num" id="bPer">250만원</b></div>
+    <div class="bstat"><span>남은 달</span><b class="num" id="bLeft">4개월</b></div>
+  </div>
+</section>
+
+<section class="s-months">
+  <div class="wrap">
+    <div class="sec-title">
+      <h2>달마다 얼마 넣었나</h2>
+      <p>만원 단위 · 이 브라우저에 자동 저장</p>
+    </div>
+    <div class="months" id="months"></div>
+  </div>
+</section>
+
+<section class="s-foot">
+  <div class="wrap foot">
+    <p>막대는 네 달에 고르게 나눴을 때의 기준 금액(<span class="num" id="footPace">250만원</span>) 대비 그 달의 성적입니다.</p>
+    <button class="btn" id="resetBtn" type="button">전부 지우기</button>
+  </div>
+</section>
+
+<script>
+(function(){
+  "use strict";
+
+  var MONTHS = [9,10,11,12];
+  var KEY = "cheonman-v2";
+  var MAN = 10000;
+  var R = 80, C = 2 * Math.PI * R;
+
+  var state = { goal: 1000 * MAN, saved: {9:null,10:null,11:null,12:null} };
+
+  try{
+    var raw = localStorage.getItem(KEY);
+    if (raw){
+      var p = JSON.parse(raw);
+      if (p && typeof p.goal === "number" && p.goal > 0) state.goal = p.goal;
+      if (p && p.saved) MONTHS.forEach(function(m){
+        var v = p.saved[m];
+        state.saved[m] = (typeof v === "number" && isFinite(v) && v >= 0) ? v : null;
+      });
+    }
+  }catch(e){ /* 저장값이 없거나 읽을 수 없으면 기본값으로 시작 */ }
+
+  function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} }
+
+  function manNum(n){
+    var v = n / MAN;
+    return (Math.abs(v - Math.round(v)) < 0.005) ? Math.round(v) : Math.round(v*10)/10;
+  }
+  function man(n){
+    var v = manNum(n);
+    return v.toLocaleString("ko-KR", {maximumFractionDigits:1}) + "만원";
+  }
+
+  /* ── month blocks ─────────────────────────────── */
+  var monthsEl = document.getElementById("months");
+  MONTHS.forEach(function(m){
+    var el = document.createElement("article");
+    el.className = "mb is-empty";
+    el.id = "mb-" + m;
+    el.innerHTML =
+      '<div class="mb-top">' +
+        '<span class="mb-name">' + m + '월<span class="tag" id="tag-'+m+'" hidden></span></span>' +
+        '<span class="mb-field"><input id="in-'+m+'" type="number" min="0" step="10" inputmode="decimal" placeholder="0" aria-label="'+m+'월에 넣은 돈 (만원)"><span class="u">만원</span></span>' +
+      '</div>' +
+      '<div class="mb-bar"><i id="bar-'+m+'"></i></div>' +
+      '<div class="mb-foot"><span id="f1-'+m+'">아직 입력 전</span><span id="f2-'+m+'"></span></div>';
+    monthsEl.appendChild(el);
+  });
+
+  /* ── dividers between month contributions on the ring ── */
+  var divEl = document.getElementById("dividers");
+  var divNodes = [];
+  for (var i = 0; i < 3; i++){
+    var l = document.createElementNS("http://www.w3.org/2000/svg","line");
+    l.setAttribute("class","divider");
+    l.setAttribute("x1", String(100 + R - 13));
+    l.setAttribute("y1","100");
+    l.setAttribute("x2", String(100 + R + 13));
+    l.setAttribute("y2","100");
+    l.setAttribute("opacity","0");
+    divEl.appendChild(l);
+    divNodes.push(l);
+  }
+
+  /* ── hero count-up ────────────────────────────── */
+  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var dAmt = document.getElementById("dAmt");
+  var shown = 0, raf = null;
+  function paint(v, exact){
+    /* mid-flight frames stay whole so the number doesn't jitter in width */
+    var n = exact ? manNum(v) : Math.round(v / MAN);
+    dAmt.innerHTML = n.toLocaleString("ko-KR",{maximumFractionDigits:1}) + '<span class="u">만원</span>';
+  }
+  function setHero(target){
+    if (reduce){ paint(target, true); shown = target; return; }
+    var from = shown, t0 = null;
+    if (raf) cancelAnimationFrame(raf);
+    (function run(){
+      raf = requestAnimationFrame(function step(ts){
+        if (t0 === null) t0 = ts;
+        var k = Math.min(1, (ts - t0) / 700);
+        var e = 1 - Math.pow(1 - k, 3);
+        if (k < 1){ paint(from + (target - from) * e, false); raf = requestAnimationFrame(step); }
+        else { paint(target, true); shown = target; raf = null; }
+      });
+    })();
+  }
+
+  var fillRing = document.getElementById("fillRing");
+
+  function render(animate){
+    var goal = state.goal;
+    var pace = goal / 4;
+
+    var total = 0, planned = 0;
+    MONTHS.forEach(function(m){ if (state.saved[m] !== null){ total += state.saved[m]; planned++; } });
+
+    var rest = Math.max(0, goal - total);
+    var ratio = goal > 0 ? Math.min(1, total / goal) : 0;
+    var monthsLeft = 4 - planned;
+    var done = total >= goal && goal > 0;
+
+    /* ring */
+    var len = ratio * C;
+    fillRing.setAttribute("stroke-dasharray", (animate ? len : 0) + " " + C);
+    fillRing.setAttribute("data-zero", len > 0.5 ? "0" : "1");
+
+    /* dividers at each month boundary that sits inside the filled arc */
+    var cum = 0, di = 0;
+    MONTHS.forEach(function(m, idx){
+      if (idx === 3) return;
+      cum += (state.saved[m] || 0);
+      var f = goal > 0 ? cum / goal : 0;
+      var node = divNodes[di++];
+      if (animate && f > 0.012 && f < ratio - 0.012){
+        node.setAttribute("transform", "rotate(" + (f * 360) + " 100 100)");
+        node.setAttribute("opacity","1");
+      } else {
+        node.setAttribute("opacity","0");
+      }
+    });
+
+    /* dial centre */
+    setHero(total);
+    var dPct = document.getElementById("dPct");
+    if (done){
+      dPct.textContent = "목표 달성 · " + Math.round(total / goal * 100) + "%";
+      dPct.classList.add("done");
+    } else {
+      dPct.textContent = "목표의 " + (Math.round(ratio * 1000) / 10) + "%";
+      dPct.classList.remove("done");
+    }
+
+    /* band */
+    var band = document.getElementById("band");
+    band.classList.toggle("done", done);
+    document.getElementById("bRest").textContent = done ? "0원" : man(rest);
+    document.getElementById("bLeft").textContent = monthsLeft > 0 ? monthsLeft + "개월" : "없음";
+    var bPer = document.getElementById("bPer");
+    if (done) bPer.textContent = "다 넣었음";
+    else if (monthsLeft === 0) bPer.textContent = man(rest) + " 부족";
+    else bPer.textContent = man(rest / monthsLeft);
+
+    /* desktop side copy */
+    var sideTitle = document.getElementById("sideTitle");
+    var sideText = document.getElementById("sideText");
+    if (done){
+      var over = total - goal;
+      sideTitle.textContent = "다 모았습니다";
+      sideText.innerHTML = over > 0
+        ? "네 달 합계 <b>" + man(total) + "</b>. 목표를 <b>" + man(over) + "</b> 넘겼습니다."
+        : "네 달 합계 <b>" + man(total) + "</b>. 목표를 정확히 채웠습니다.";
+    } else if (planned === 0){
+      sideTitle.textContent = "아직 시작 전";
+      sideText.innerHTML = "목표대로라면 <b>매달 " + man(pace) + "</b>씩 넣으면 됩니다. 아래에 실제로 넣은 돈을 적어보세요.";
+    } else if (monthsLeft === 0){
+      sideTitle.textContent = man(rest) + " 모자람";
+      sideText.innerHTML = "네 달을 다 썼는데 <b>" + man(rest) + "</b>이 비었습니다. 목표를 조정하거나 한 달치를 늘려보세요.";
+    } else {
+      sideTitle.textContent = "남은 " + monthsLeft + "개월";
+      sideText.innerHTML = "<b>매달 " + man(rest / monthsLeft) + "</b>씩 넣으면 목표에 닿습니다. 지금까지 " + man(total) + " 모았습니다.";
+    }
+
+    /* month blocks */
+    var run = 0;
+    MONTHS.forEach(function(m){
+      var v = state.saved[m];
+      var amt = v || 0;
+      run += amt;
+      var leftAfter = Math.max(0, goal - run);
+      var r = pace > 0 ? amt / pace : 0;
+
+      document.getElementById("bar-"+m).style.width = (animate ? Math.min(1, r) * 100 : 0) + "%";
+      document.getElementById("mb-"+m).classList.toggle("is-empty", v === null);
+
+      var tag = document.getElementById("tag-"+m);
+      if (v !== null && r > 1.0001){
+        tag.textContent = "+" + man(amt - pace);
+        tag.hidden = false;
+      } else {
+        tag.hidden = true;
+      }
+
+      var f1 = document.getElementById("f1-"+m);
+      var f2 = document.getElementById("f2-"+m);
+      if (v === null){
+        f1.textContent = "아직 입력 전";
+        f2.textContent = "";
+      } else {
+        f1.innerHTML = "기준 " + man(pace) + "의 <b>" + Math.round(r * 100) + "%</b>";
+        f2.innerHTML = leftAfter === 0 ? "<b>완료</b>" : "남은 <b>" + man(leftAfter) + "</b>";
+      }
+    });
+
+    document.getElementById("footPace").textContent = man(pace);
+  }
+
+  /* ── goal input sizing + events ───────────────── */
+  var goalInput = document.getElementById("goalInput");
+  var goalMirror = document.getElementById("goalMirror");
+
+  function sizeGoal(){
+    goalMirror.textContent = goalInput.value || "0";
+    goalInput.style.width = (goalMirror.getBoundingClientRect().width + 2) + "px";
+  }
+  function fmtGoal(n){ return manNum(n).toLocaleString("ko-KR", {maximumFractionDigits:1}); }
+
+  goalInput.value = fmtGoal(state.goal);
+  sizeGoal();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(sizeGoal);
+
+  goalInput.addEventListener("input", function(){
+    var n = parseFloat(goalInput.value.replace(/,/g, ""));
+    sizeGoal();
+    if (isFinite(n) && n > 0){ state.goal = n * MAN; save(); render(true); }
+  });
+  goalInput.addEventListener("blur", function(){
+    goalInput.value = fmtGoal(state.goal);
+    sizeGoal();
+  });
+
+  MONTHS.forEach(function(m){
+    var input = document.getElementById("in-"+m);
+    if (state.saved[m] !== null) input.value = manNum(state.saved[m]);
+    input.addEventListener("input", function(){
+      var s = input.value.trim();
+      var n = parseFloat(s);
+      state.saved[m] = (s === "" || !isFinite(n) || n < 0) ? null : n * MAN;
+      save(); render(true);
+    });
+  });
+
+  document.getElementById("resetBtn").addEventListener("click", function(){
+    MONTHS.forEach(function(m){
+      state.saved[m] = null;
+      document.getElementById("in-"+m).value = "";
+    });
+    save(); render(true);
+  });
+
+  /* first paint at zero, then animate to the real values */
+  render(false);
+  requestAnimationFrame(function(){ requestAnimationFrame(function(){ render(true); }); });
+})();
+</script>
+</body>
+</html>
