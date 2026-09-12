@@ -69,22 +69,42 @@ body{
 }
 .plans::-webkit-scrollbar{display:none;}
 .pill{
-  font:inherit;font-weight:700;font-size:14px;
-  white-space:nowrap;flex:none;
-  padding:9px 16px;border-radius:999px;
-  border:2px solid var(--track);
-  background:transparent;color:var(--ink-2);
-  cursor:pointer;
-  transition:border-color .15s ease,color .15s ease,background .15s ease;
+  display:inline-flex;align-items:stretch;flex:none;
+  border:2px solid var(--track);border-radius:999px;
+  background:transparent;overflow:hidden;
+  transition:border-color .15s ease,background .15s ease;
 }
-.pill:hover{border-color:var(--ink-3);color:var(--ink);}
-.pill.on{background:var(--ink);border-color:var(--ink);color:var(--bg);}
-.pill:focus-visible{outline:3px solid var(--accent);outline-offset:2px;}
+.pill:hover{border-color:var(--ink-3);}
+.pill.on{background:var(--ink);border-color:var(--ink);}
+.pill button{
+  font:inherit;font-weight:700;font-size:14px;
+  white-space:nowrap;background:transparent;border:0;
+  color:var(--ink-2);cursor:pointer;
+  transition:color .15s ease,opacity .15s ease;
+}
+.pill button:focus-visible{outline:3px solid var(--accent);outline-offset:-3px;border-radius:999px;}
+.pill:hover .pill-main{color:var(--ink);}
+.pill.on .pill-main,.pill.on:hover .pill-main{color:var(--bg);}
+.pill-main{padding:9px 16px;}
+.pill.on .pill-main{padding-right:7px;}
 .pill .dot{
   display:inline-block;width:6px;height:6px;border-radius:50%;
   background:var(--accent);margin-right:7px;transform:translateY(-1px);
 }
-.pill-add{padding:9px 14px;font-size:17px;line-height:1;color:var(--ink-3);}
+/* 삭제는 현재 보고 있는 플랜에만 나온다 — 잘못 눌러 다른 플랜을 지우는 일이 없도록 */
+.pill-del{
+  padding:9px 14px 9px 5px;font-size:17px;line-height:1.1;
+  color:var(--bg);opacity:.55;
+}
+.pill-del:hover{opacity:1;color:#FF7A55;}
+.pill-add{
+  padding:9px 15px;font-size:17px;line-height:1.1;color:var(--ink-3);
+  border:2px solid var(--track);border-radius:999px;background:transparent;
+  font-weight:700;cursor:pointer;flex:none;
+  transition:border-color .15s ease,color .15s ease;
+}
+.pill-add:hover{border-color:var(--ink-3);color:var(--ink);}
+.pill-add:focus-visible{outline:3px solid var(--accent);outline-offset:2px;}
 
 /* ─────────── headline ─────────── */
 .s-head{padding:clamp(20px,5vw,44px) 0 clamp(26px,6vw,48px);}
@@ -495,29 +515,63 @@ h2{margin:0;font-weight:900;font-size:clamp(26px,6vw,40px);letter-spacing:-.04em
   function renderPills(){
     plansEl.innerHTML = "";
     vault.plans.forEach(function(p){
+      var active = p.id === vault.activeId;
+      var wrap = document.createElement("div");
+      wrap.className = "pill" + (active ? " on" : "");
+
       var b = document.createElement("button");
       b.type = "button";
-      b.className = "pill" + (p.id === vault.activeId ? " on" : "");
+      b.className = "pill-main";
       b.setAttribute("role","tab");
-      b.setAttribute("aria-selected", p.id === vault.activeId ? "true" : "false");
-      b.innerHTML = (p.id === vault.activeId ? '<span class="dot"></span>' : '') + escapeHtml(p.name);
+      b.setAttribute("aria-selected", active ? "true" : "false");
+      b.innerHTML = (active ? '<span class="dot"></span>' : '') + escapeHtml(p.name);
       b.addEventListener("click", function(){
-        if (p.id === vault.activeId) return;
+        if (active) return;
         vault.activeId = p.id; save(); resetHero(); rebuild();
       });
-      plansEl.appendChild(b);
+      wrap.appendChild(b);
+
+      if (active){
+        var x = document.createElement("button");
+        x.type = "button";
+        x.className = "pill-del";
+        x.setAttribute("aria-label", p.name + " 플랜 삭제");
+        x.textContent = "\u00d7";
+        x.addEventListener("click", function(){ deletePlan(p.id); });
+        wrap.appendChild(x);
+      }
+      plansEl.appendChild(wrap);
     });
+
     var add = document.createElement("button");
     add.type = "button";
-    add.className = "pill pill-add";
+    add.className = "pill-add";
     add.setAttribute("aria-label","새 플랜 추가");
     add.textContent = "+";
-    add.addEventListener("click", function(){
-      var p = newPlan("새 플랜");
-      vault.plans.push(p); vault.activeId = p.id; save(); resetHero(); rebuild();
-      nameInput.focus(); nameInput.select();
-    });
+    add.addEventListener("click", addPlan);
     plansEl.appendChild(add);
+  }
+
+  function addPlan(){
+    var p = newPlan("새 플랜");
+    vault.plans.push(p); vault.activeId = p.id; save(); resetHero(); rebuild();
+    nameInput.focus(); nameInput.select();
+  }
+
+  /* 마지막 플랜도 지울 수 있다. 빈 플랜이 그 자리를 대신하므로
+     화면이 빈 상태로 남지 않는다. */
+  function deletePlan(id){
+    var p = vault.plans.filter(function(x){ return x.id === id; })[0];
+    if (!p) return;
+    var filled = Object.keys(p.saved || {}).length;
+    var msg = '"' + p.name + '" 플랜을 지울까요?';
+    if (filled) msg += "\n적어둔 " + filled + "개월치 금액도 함께 사라집니다.";
+    if (!confirm(msg)) return;
+
+    vault.plans = vault.plans.filter(function(x){ return x.id !== id; });
+    if (!vault.plans.length) vault.plans.push(newPlan("프로젝트"));
+    vault.activeId = vault.plans[0].id;
+    save(); closeSheet(); resetHero(); rebuild();
   }
   function escapeHtml(s){
     return String(s).replace(/[&<>"']/g, function(c){
@@ -701,8 +755,6 @@ h2{margin:0;font-weight:900;font-size:clamp(26px,6vw,40px);letter-spacing:-.04em
   function openSheet(){
     var p = plan();
     setYear.value = p.y; setMonth.value = p.m; setLen.value = p.n;
-    document.getElementById("delPlanBtn").disabled = vault.plans.length < 2;
-    document.getElementById("delPlanBtn").style.opacity = vault.plans.length < 2 ? ".35" : "1";
     scrim.setAttribute("data-open","1");
     scrim.querySelector(".sheet").focus();
   }
@@ -736,12 +788,7 @@ h2{margin:0;font-weight:900;font-size:clamp(26px,6vw,40px);letter-spacing:-.04em
   });
 
   document.getElementById("delPlanBtn").addEventListener("click", function(){
-    if (vault.plans.length < 2) return;
-    var p = plan();
-    if (!confirm('"' + p.name + '" 플랜을 지울까요? 적어둔 금액도 함께 사라집니다.')) return;
-    vault.plans = vault.plans.filter(function(x){ return x.id !== p.id; });
-    vault.activeId = vault.plans[0].id;
-    save(); closeSheet(); resetHero(); rebuild();
+    deletePlan(vault.activeId);
   });
 
   document.getElementById("resetBtn").addEventListener("click", function(){
