@@ -384,7 +384,8 @@ h2{
   "use strict";
 
   var MONTHS = [9,10,11,12];
-  var KEY = "cheonman-v2";
+  var KEY = "saveplan-v1";
+  var LEGACY_KEY = "cheonman-v2";   // 이름을 바꾸기 전에 저장된 값
   var MAN = 10000;
   var R = 80, C = 2 * Math.PI * R;
 
@@ -392,6 +393,11 @@ h2{
 
   try{
     var raw = localStorage.getItem(KEY);
+    if (!raw){
+      /* 예전 키로 저장된 값이 있으면 새 키로 옮겨온다 */
+      var legacy = localStorage.getItem(LEGACY_KEY);
+      if (legacy){ raw = legacy; localStorage.setItem(KEY, legacy); localStorage.removeItem(LEGACY_KEY); }
+    }
     if (raw){
       var p = JSON.parse(raw);
       if (p && typeof p.goal === "number" && p.goal > 0) state.goal = p.goal;
